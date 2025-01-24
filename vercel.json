@@ -1,0 +1,7 @@
+{
+  "framework": "nuxt",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".output/public",
+  "regions": ["cdg1"],
+  "installCommand": "npm install"
+}
