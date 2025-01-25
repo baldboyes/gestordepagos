@@ -40,14 +40,48 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref, onMounted } from 'vue'
 import BottomNavigation from '../components/BottomNavigation.vue'
+import { useSupabase } from '../src/lib/supabase'
 
+const supabase = useSupabase()
 const showModal = inject('showModal')
 
-import { ref } from 'vue'
-
+const expenses = ref([])
+const isLoading = ref(true)
 const categoryStates = ref({})
+
+onMounted(async () => {
+  await loadExpenses()
+})
+
+const loadExpenses = async () => {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) throw userError
+
+    const { data, error } = await supabase
+      .from('gastos')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('fecha', { ascending: false })
+
+    if (error) throw error
+
+    expenses.value = data.map(expense => ({
+      id: expense.id,
+      category: expense.categoria,
+      amount: expense.precio,
+      note: expense.nota,
+      date: expense.fecha
+    }))
+  } catch (error) {
+    console.error('Error loading expenses:', error)
+    expenses.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const toggleCategory = (monthKey, categoryName) => {
   const key = `${monthKey}-${categoryName}`
@@ -60,10 +94,9 @@ const isCategoryExpanded = (monthKey, categoryName) => {
 }
 
 const monthlyExpenses = computed(() => {
-  const expenses = JSON.parse(localStorage.getItem('expenses') || '[]')
   const months = {}
 
-  expenses.forEach(expense => {
+  expenses.value.forEach(expense => {
     const date = new Date(expense.date)
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
     const monthName = date.toLocaleString('es-ES', { month: 'long', year: 'numeric' })

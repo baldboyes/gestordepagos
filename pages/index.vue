@@ -1,7 +1,15 @@
 <template>
   <div class="min-h-screen md:bg-gray-100 md:p-4 pb-20 transition duration-300">
     <div class="max-w-md mx-auto bg-white rounded-lg md:shadow-lg p-6">      
-      <div v-if="currentMonthExpenses.length > 0">
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 text-center">
+        <svg class="w-32 h-32 mb-6 text-blue-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Cargando gastos...</h2>
+      </div>
+
+      <div v-else-if="currentMonthExpenses.length > 0">
         <div class="text-4xl font-bold text-center py-8 mb-6">
           {{ total }}€
         </div>
@@ -62,32 +70,66 @@
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
 import BottomNavigation from '../components/BottomNavigation.vue'
+import { useSupabase } from '../src/lib/supabase'
+const supabase = useSupabase()
 
-const showModal = inject('showModal')
 const expenses = ref([])
+const isLoading = ref(true)
 
-// Initialize localStorage safely
-onMounted(() => {
+onMounted(async () => {
   try {
-    const storedExpenses = window.localStorage.getItem('expenses')
-    if (storedExpenses) {
-      expenses.value = JSON.parse(storedExpenses)
-    }
+    await loadExpenses()
     // Listen for updates from the modal
     window.addEventListener('expenses-updated', loadExpenses)
   } catch (error) {
-    console.error('Error accessing localStorage:', error)
+    console.error('Error loading expenses:', error)
+  } finally {
+    isLoading.value = false
   }
 })
 
-const loadExpenses = (event) => {
-  if (event && event.detail) {
-    expenses.value = event.detail.sort((a, b) => new Date(b.date) - new Date(a.date))
-  } else {
-    const storedExpenses = window.localStorage.getItem('expenses')
-    if (storedExpenses) {
-      expenses.value = JSON.parse(storedExpenses).sort((a, b) => new Date(b.date) - new Date(a.date))
-    }
+const loadExpenses = async (event) => {
+  isLoading.value = true
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) throw userError
+
+    const { data, error } = await supabase
+      .from('gastos')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('fecha', { ascending: false })
+      .limit(10)
+
+    if (error) throw error
+
+    expenses.value = data.map(expense => ({
+      id: expense.id,
+      category: expense.categoria,
+      amount: expense.precio,
+      note: expense.nota,
+      date: expense.fecha
+    }))
+  } catch (error) {
+    console.error('Error loading expenses:', error)
+    expenses.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const deleteExpense = async (id) => {
+  try {
+    const { error } = await supabase
+      .from('gastos')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+    await loadExpenses()
+  } catch (error) {
+    console.error('Error deleting expense:', error)
+    alert('Error al eliminar el gasto. Por favor, inténtalo de nuevo.')
   }
 }
 
@@ -112,13 +154,5 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric'
   })
-}
-
-const deleteExpense = (id) => {
-  if (confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
-    const updatedExpenses = expenses.value.filter(expense => expense.id !== id)
-    localStorage.setItem('expenses', JSON.stringify(updatedExpenses))
-    expenses.value = updatedExpenses
-  }
 }
 </script>
