@@ -53,7 +53,7 @@
         v-if="showAIButton"
         @click="$router.push('/ia')"
         :class="{
-          'p-2 hover:text-blue-500 focus:outline-none hidden lg:block': true,
+          'p-2 hover:text-blue-500 focus:outline-none': true,
           'text-blue-500': $route.path === '/ia',
           'text-gray-600': $route.path !== '/ia'
         }"

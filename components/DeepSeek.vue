@@ -17,8 +17,8 @@ import { useRuntimeConfig } from '#app';
 import { useAIReport } from '~/composables/useAIReport';
 
 const config = useRuntimeConfig();
-const ollamaModel = config.public.OLLAMA;
-const ollamaEndpoint = 'http://localhost:11434';
+const deepseekApiKey = ref('');
+
 const props = defineProps({
   expenses: {
     type: Array,
@@ -28,7 +28,7 @@ const props = defineProps({
 
 const emit = defineEmits(['report-generation-start', 'report-generation-end']);
 
-const { report, formattedReport, isGeneratingReport, error, generateOllamaReport } = useAIReport();
+const { report, formattedReport, isGeneratingReport, error, generateDeepSeekReport } = useAIReport();
 
 // Watch for changes in expenses to update the report
 watch(() => props.expenses, async (newExpenses) => {
@@ -39,6 +39,9 @@ watch(() => props.expenses, async (newExpenses) => {
 
 // Generate report when component is mounted if expenses exist
 onMounted(async () => {
+  if (typeof window !== 'undefined') {
+    deepseekApiKey.value = localStorage.getItem('deepseekApiKey');
+  }
   if (props.expenses.length > 0) {
     await generateReport(props.expenses);
   }
@@ -46,7 +49,7 @@ onMounted(async () => {
 
 async function generateReport(expenses) {
   emit('report-generation-start');
-  await generateOllamaReport(expenses, ollamaEndpoint, ollamaModel);
+  await generateDeepSeekReport(expenses, deepseekApiKey.value);
   emit('report-generation-end');
 }
 </script>
