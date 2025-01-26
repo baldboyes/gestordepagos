@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
     "canvas-confetti": "^1.9.3",
+    "marked": "^15.0.6",
     "nuxt": "^3.15.2",
     "vue": "latest",
     "vue-router": "latest"

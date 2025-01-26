@@ -74,6 +74,7 @@
         </button>
       </div>
     </div>
+
     <BottomNavigation @showModal="showModal = true" />
     <AddExpenseModal :show-modal="showModal" @update:show-modal="showModal = $event" @expenses-updated="loadExpenses" />
   </div>
