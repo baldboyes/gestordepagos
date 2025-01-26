@@ -18,7 +18,8 @@ import { marked } from 'marked';
 import { useRuntimeConfig } from '#app';
 
 const config = useRuntimeConfig();
-const ollamaModel = config.public.OLLAMA
+const ollamaModel = config.public.OLLAMA;
+const ollamaEndpoint = config.public.OLLAMA_ENDPOINT || 'http://localhost:11434';
 const props = defineProps({
   expenses: {
     type: Array,
@@ -65,7 +66,7 @@ async function generateReport(expenses) {
 Datos de gastos:
 ${JSON.stringify(expenses, null, 2)}`;
 
-    const response = await fetch('http://localhost:11434/api/generate', {
+    const response = await fetch(`${ollamaEndpoint}/api/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -77,13 +78,16 @@ ${JSON.stringify(expenses, null, 2)}`;
       })
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
     report.value = data.response;
-    // Convert markdown to HTML for better formatting
     formattedReport.value = marked(data.response);
   } catch (error) {
     console.error('Error generating report:', error);
-    report.value = 'Error generating expense analysis. Please try again later.';
+    report.value = 'Lo siento, no se pudo generar el análisis de gastos. Por favor, verifica que el servicio de IA esté disponible y accesible.';
     formattedReport.value = report.value;
   } finally {
     isGeneratingReport.value = false;

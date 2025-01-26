@@ -5,6 +5,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      OLLAMA_ENDPOINT: process.env.OLLAMA_ENDPOINT || 'http://localhost:11434',
       SUPABASE_URL: process.env.SUPABASE_URL,
       SUPABASE_KEY: process.env.SUPABASE_KEY,
       OLLAMA: process.env.OLLAMA
