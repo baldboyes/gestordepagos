@@ -156,7 +156,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from "vue";
 import { useSupabase } from "../src/lib/supabase";
