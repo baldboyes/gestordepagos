@@ -116,20 +116,9 @@ async function handleRegister() {
     isLoading.value = true
     errorMessage.value = ''
     
-    // Check if user already exists
-    const { data: existingUser } = await supabase.auth.signInWithPassword({
-      email: email.value,
-      password: ''
-    })
-
-    if (existingUser) {
-      errorMessage.value = 'Este email ya está registrado. Por favor, inicia sesión.'
-      isLogin.value = true
-      return
-    }
-    
     const { data, error } = await signUp(email.value, password.value)
     if (error) throw error
+    
     if (data) {
       errorMessage.value = 'Se ha enviado un enlace de confirmación a tu email'
     }
@@ -145,7 +134,7 @@ async function handleLogout() {
     isLoading.value = true
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-    navigateTo('/')
+    navigateTo('/user')
   } catch (error) {
     errorMessage.value = error.message || 'Error al cerrar sesión'
   } finally {

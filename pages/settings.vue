@@ -34,7 +34,7 @@
 
       <!-- Supabase Fixed Expense Section -->
       <div v-show="activeTab === 'supabaseFixedExpense'">
-        <SupabaseFixedExpense />
+        <SupabaseFixedExpense ref="fixedExpenseComponent" @template-updated="handleTemplateUpdate" />
       </div>
 
     </div>
@@ -46,4 +46,11 @@ import { ref } from 'vue'
 import SupabaseFixedExpense from '~/components/SupabaseFixedExpense.vue'
 
 const activeTab = ref('categoriasSupabase')
+const fixedExpenseComponent = ref(null)
+
+const handleTemplateUpdate = async () => {
+  if (fixedExpenseComponent.value) {
+    await fixedExpenseComponent.value.loadTemplates()
+  }
+}
 </script>

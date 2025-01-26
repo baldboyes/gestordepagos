@@ -53,6 +53,14 @@ const categoryStates = ref({})
 
 onMounted(async () => {
   await loadExpenses()
+  
+  // Watch for modal changes to refresh data
+  watch(showModal, async (newVal, oldVal) => {
+    if (oldVal === true && newVal === false) {
+      // Modal was closed, refresh the expenses
+      await loadExpenses()
+    }
+  })
 })
 
 const loadExpenses = async () => {

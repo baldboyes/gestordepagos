@@ -6,11 +6,14 @@ export async function signUp(email, password) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
     })
     
     if (error) throw error
     
-    return data
+    return { data, error: null }
   } catch (error) {
     console.error('Error al registrar usuario:', error.message)
     throw error

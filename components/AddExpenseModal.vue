@@ -85,21 +85,34 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useSupabase } from '../src/lib/supabase'
+import confetti from 'canvas-confetti'
 
 const props = defineProps({
   showModal: {
     type: Boolean,
-    required: true
+    required: true,
+    default: false
   }
 })
 
-const emit = defineEmits(['update:showModal', 'expense-added'])
+const emit = defineEmits(['update:show-modal', 'expenses-updated', 'expense-added'])
+
+const closeModal = () => {
+  emit('update:show-modal', false)
+}
 
 const categories = ref([])
 const fixedExpenseTemplates = ref([])
 const supabase = useSupabase()
 
 onMounted(async () => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (!user || userError) {
+    console.error('User not authenticated')
+    closeModal()
+    return
+  }
+
   await Promise.all([
     loadCategories(),
     loadFixedExpenseTemplates()
@@ -177,12 +190,26 @@ const addExpense = async () => {
       fecha: newExpense.value.date
     }
 
+    const { data: currentExpenses } = await supabase
+      .from('gastos')
+      .select('id')
+      .eq('user_id', user.id)
+
     const { data, error } = await supabase
       .from('gastos')
       .insert(expense)
       .select()
 
     if (error) throw error
+
+    // Check if this is the first expense
+    if (currentExpenses && currentExpenses.length === 0) {
+      confetti({
+        particleCount: 180,
+        spread: 70,
+        origin: { y: 0.6 }
+      })
+    }
 
     // Reset form
     newExpense.value = {
@@ -201,7 +228,4 @@ const addExpense = async () => {
   }
 }
 
-const closeModal = () => {
-  emit('update:showModal', false)
-}
 </script>
