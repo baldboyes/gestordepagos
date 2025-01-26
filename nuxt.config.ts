@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   modules: [
     '@vite-pwa/nuxt'
   ],
+  app:{
+    pageTransition: { name: 'page', mode: 'out-in' }
+  },
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
