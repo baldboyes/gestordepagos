@@ -2,10 +2,9 @@
   <div class="min-h-screen md:bg-gray-100 md:p-4 pb-20 transition duration-300">
     <div class="max-w-md mx-auto bg-white rounded-lg md:shadow-lg p-6">      
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 text-center">
-        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">Cargando gastos...</h2>
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <h2 class="text-xl font-semibold text-gray-700 mt-6">Cargando gastos...</h2>
       </div>
-
       <div v-else-if="currentMonthExpenses.length > 0">
         <div class="text-4xl font-bold text-center py-8 mb-6">
           {{ total }}€
@@ -75,11 +74,7 @@
         </button>
       </div>
     </div>
-    <BottomNavigation 
-      @showModal="showModal = true" 
-      :has-categories="hasCategories"
-      :has-expenses="currentMonthExpenses.length > 0"
-    />
+    <BottomNavigation @showModal="showModal = true" />
     <AddExpenseModal :show-modal="showModal" @update:show-modal="showModal = $event" @expenses-updated="loadExpenses" />
   </div>
 </template>
