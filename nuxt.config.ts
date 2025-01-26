@@ -52,15 +52,26 @@ export default defineNuxtConfig({
         }
       ]
     },
+    pwaAssets: {
+      config: false,
+    },
     workbox: {
-      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+    },
+    injectManifest: {
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
     },
     client: {
       installPrompt: true,
+      // you don't need to include this: only for testing purposes
+      // if enabling periodic sync for update use 1 hour or so (periodicSyncForUpdates: 3600)
+      periodicSyncForUpdates: 20,
     },
     devOptions: {
       enabled: true,
+      suppressWarnings: true,
+      navigateFallback: '/',
+      navigateFallbackAllowlist: [/^\/$/],
       type: 'module',
     }
   },
