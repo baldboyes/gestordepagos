@@ -50,7 +50,6 @@
         </svg>
       </button>
       <button
-        v-if="showAIButton"
         @click="$router.push('/ia')"
         :class="{
           'p-2 hover:text-blue-500 focus:outline-none': true,
@@ -164,7 +163,6 @@ import { useRuntimeConfig } from "#app";
 const supabase = useSupabase();
 const config = useRuntimeConfig();
 const hasCategories = ref(false);
-const showAIButton = computed(() => config.public.OLLAMA);
 
 onMounted(async () => {
   await checkCategories();

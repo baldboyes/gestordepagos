@@ -1,8 +1,17 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@vite-pwa/nuxt'
+    '@vite-pwa/nuxt',
+    '@nuxtjs/google-fonts'
   ],
+  googleFonts: {
+    families: {
+      Montserrat: [100, 300, 400, 500, 700, 900]
+    },
+    display: 'swap',
+    prefetch: true,
+    preconnect: true
+  },
   app:{
     pageTransition: { name: 'page', mode: 'out-in' }
   },
