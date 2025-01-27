@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   ],
   googleFonts: {
     families: {
-      Montserrat: [100, 300, 400, 500, 700, 900]
+      Catamaran: [100, 300, 400, 500, 700, 900]
     },
     display: 'swap',
     prefetch: true,
