@@ -1,7 +1,8 @@
 <template>
   <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md md:shadow-lg">
-      <h2 class="text-xl font-bold mb-4">Añadir Gasto</h2>
+    <div class="bg-white rounded-lg p-6 w-full max-w-md md:shadow-lg relative">
+      <h2 class="text-xl font-bold mb-4">{{ editingExpense ? 'Editar Gasto' : 'Añadir Gasto' }}</h2>
+      <Camera @click="handleCameraClick" @image-captured="handleImageCaptured" />
       <div class="mb-4">
         <h3 class="text-sm font-medium text-gray-700 mb-2">Gastos Fijos</h3>
         <div class="flex flex-wrap gap-2">
@@ -17,6 +18,7 @@
         </div>
       </div>
       <form @submit.prevent="addExpense" class="space-y-4">
+
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
           <select
@@ -86,12 +88,17 @@
 import { ref, onMounted } from 'vue'
 import { useSupabase } from '../src/lib/supabase'
 import confetti from 'canvas-confetti'
+import Camera from './Camera.vue'
 
 const props = defineProps({
   showModal: {
     type: Boolean,
     required: true,
     default: false
+  },
+  editingExpense: {
+    type: Object,
+    default: null
   }
 })
 
@@ -99,6 +106,16 @@ const emit = defineEmits(['update:show-modal', 'expenses-updated', 'expense-adde
 
 const closeModal = () => {
   emit('update:show-modal', false)
+}
+
+const handleCameraClick = () => {
+  // Camera component will handle opening the camera
+}
+
+const handleImageCaptured = (imageData) => {
+  // Here you can handle the captured image data
+  // For example, you could store it in a ref to upload it later
+  console.log('Image captured:', imageData)
 }
 
 const categories = ref([])
@@ -168,6 +185,17 @@ const newExpense = ref({
   date: getCurrentDate()
 })
 
+watch(() => props.editingExpense, (expense) => {
+  if (expense) {
+    newExpense.value = {
+      category: expense.category,
+      amount: expense.amount,
+      note: expense.note || '',
+      date: expense.date
+    }
+  }
+}, { immediate: true })
+
 const applyTemplate = (template) => {
   newExpense.value = {
     ...newExpense.value,
@@ -178,6 +206,9 @@ const applyTemplate = (template) => {
 }
 
 const addExpense = async () => {
+  if (props.editingExpense) {
+    return updateExpense()
+  }
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError) throw userError
@@ -228,4 +259,39 @@ const addExpense = async () => {
   }
 }
 
+const updateExpense = async () => {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) throw userError
+
+    const expense = {
+      categoria: newExpense.value.category,
+      precio: parseFloat(newExpense.value.amount),
+      nota: newExpense.value.note,
+      fecha: newExpense.value.date
+    }
+
+    const { error } = await supabase
+      .from('gastos')
+      .update(expense)
+      .eq('id', props.editingExpense.id)
+      .eq('user_id', user.id)
+
+    if (error) throw error
+
+    // Reset form
+    newExpense.value = {
+      category: '',
+      amount: '',
+      note: '',
+      date: getCurrentDate()
+    }
+
+    closeModal()
+    window.dispatchEvent(new CustomEvent('expenses-updated'))
+  } catch (error) {
+    console.error('Error updating expense:', error)
+    alert('Error al actualizar el gasto. Por favor, inténtalo de nuevo.')
+  }
+}
 </script>

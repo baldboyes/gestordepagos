@@ -2,7 +2,8 @@
 export default defineNuxtConfig({
   modules: [
     '@vite-pwa/nuxt',
-    '@nuxtjs/google-fonts'
+    '@nuxtjs/google-fonts',
+    '@vant/nuxt'
   ],
   googleFonts: {
     families: {

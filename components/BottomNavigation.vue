@@ -75,12 +75,7 @@
       </button>
       <button
         @click="$emit('showModal')"
-        :disabled="!hasCategories"
-        :class="{
-          'text-white rounded-full p-4 transform -translate-y-6 shadow-lg focus:outline-none': true,
-          'bg-blue-500 hover:bg-blue-600': hasCategories,
-          'bg-gray-400 cursor-not-allowed': !hasCategories,
-        }"
+        class="text-white rounded-full p-4 transform -translate-y-6 shadow-lg focus:outline-none bg-blue-500 hover:bg-blue-600"
         title="Añadir Gasto"
       >
         <svg
@@ -156,31 +151,6 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
-import { useSupabase } from "../src/lib/supabase";
-import { useRuntimeConfig } from "#app";
 
-const supabase = useSupabase();
-const config = useRuntimeConfig();
-const hasCategories = ref(false);
-
-onMounted(async () => {
-  await checkCategories();
-});
-
-const checkCategories = async () => {
-  try {
-    const { data: categories, error } = await supabase
-      .from("categorias")
-      .select("nombre");
-
-    if (error) throw error;
-    hasCategories.value = categories && categories.length > 0;
-  } catch (error) {
-    console.error("Error checking categories:", error);
-    hasCategories.value = false;
-  }
-};
-
-defineEmits(["showModal", "showMonthlyReport", "showSettings"]);
+defineEmits(["showModal"]);
 </script>

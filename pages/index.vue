@@ -1,44 +1,115 @@
 <template>
   <div class="min-h-screen md:bg-gray-100 md:p-4 pb-20 transition duration-300">
-    <div class="max-w-md mx-auto bg-white rounded-lg md:shadow-lg p-6">      
+    
+    <div class="max-w-6xl mx-auto "> 
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 text-center">
         <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <h2 class="text-xl font-semibold text-gray-700 mt-6">Cargando gastos...</h2>
       </div>
-      <div v-else-if="currentMonthExpenses.length > 0">
-        <div class="text-4xl font-bold text-center py-8 mb-6">
-          {{ total }}€
-        </div>
 
-        <ul class="space-y-3">
-          <li v-for="expense in currentMonthExpenses" :key="expense.id" class="flex flex-col bg-gray-50 rounded-xl py-2 px-3">
-            <div class="text-sm text-gray-500 mt-1">{{ formatDate(expense.date) }}</div>
-            <div class="flex justify-between items-center">
-              <div>
-                <div class="text-sm text-gray-500 mb-1"></div>
-                <span>{{ expense.category }}</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="font-bold">{{ expense.amount }}€</span>
-                <button
-                  @click="deleteExpense(expense.id)"
-                  class="text-red-500 hover:text-red-700 focus:outline-none"
-                  title="Eliminar gasto"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
+      <div v-else-if="currentMonthExpenses.length > 0">
+        <div class="flex items-start justify-between gap-8">
+          <div class="w-full bg-white rounded-2xl md:shadow-lg p-6 relative">
+            <div class="absolute lg:hidden top-6 right-6 cursor-pointer" @click="showPopup">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div> 
+            <div class="text-5xl font-bold text-center py-16">
+              {{ total }}€
+              <small class="text-sm block text-gray-400 font-normal">gastos del mes</small>
             </div>
-            <div v-if="expense.note" class="text-sm text-gray-600 mt-1">{{ expense.note }}</div>
-          </li>
-        </ul>
+            <ul class="space-y-3">
+              <li v-for="expense in currentMonthExpenses" :key="expense.id" class="flex flex-col bg-gray-50 rounded-xl py-2 px-3">
+                <div class="text-sm text-gray-500 mt-1">{{ formatDate(expense.date) }}</div>
+                <div class="flex justify-between items-center gap-2">
+                  <div>
+                    <div class="text-sm text-gray-500 mb-1"></div>
+                    <span>{{ expense.category }}</span>
+                  </div>
+                  <div class="flex items-center gap-4">
+                      <span class="font-bold">{{ expense.amount }}€</span>
+                      <div class="relative">
+                        <button
+                          @click="expense.showMenu = !expense.showMenu"
+                          class="text-gray-500 hover:text-gray-700 focus:outline-none"
+                          title="Más opciones"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                            />
+                          </svg>
+                        </button>
+                        <div
+                          v-if="expense.showMenu"
+                          class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10"
+                        >
+                          <button
+                            @click="editExpense(expense); expense.showMenu = false"
+                            class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-4 w-4 mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Editar
+                          </button>
+                          <button
+                            @click="deleteExpense(expense.id); expense.showMenu = false"
+                            class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-4 w-4 mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                  </div>
+                </div>
+                <div v-if="expense.note" class="text-sm text-gray-600 mt-1">{{ expense.note }}</div>
+              </li>
+            </ul>
+          </div>
+          <div class="w-full max-w-[450px] bg-white rounded-2xl md:shadow-lg p-6 relative hidden lg:block">
+            <TodoList />
+          </div>
+        </div>
       </div>
 
       <div v-else class="flex flex-col items-center justify-center py-16 text-center">
         <svg class="h-32 w-32" width="37px" height="39px" viewBox="0 0 37 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <title>ahorrapp</title>
           <g id="Página-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
               <g id="ahorrapp" transform="translate(0.0946, 0)" fill-rule="nonzero">
                   <g id="$" transform="translate(7.9054, 0)" fill="#009006">
@@ -73,10 +144,17 @@
           Añadir mi primer gasto
         </button>
       </div>
+
     </div>
 
+    <van-popup v-model:show="show" closeable position="bottom" :style="{ height: '100%' }"><TodoList /></van-popup>
     <BottomNavigation @showModal="showModal = true" />
-    <AddExpenseModal :show-modal="showModal" @update:show-modal="showModal = $event" @expenses-updated="loadExpenses" />
+    <AddExpenseModal 
+    :show-modal="showModal" 
+    :editing-expense="editingExpense" 
+    @update:show-modal="showModal = $event" 
+    @expenses-updated="loadExpenses" 
+  />
   </div>
 </template>
 
@@ -87,9 +165,15 @@ import AddExpenseModal from '../components/AddExpenseModal.vue'
 import { useSupabase } from '../src/lib/supabase'
 const supabase = useSupabase()
 
+const show = ref(false);
+    const showPopup = () => {
+      show.value = true;
+    };
+
 const expenses = ref([])
 const isLoading = ref(true)
 const showModal = ref(false)
+const editingExpense = ref(null)
 const hasCategories = ref(false)
 
 onMounted(async () => {
@@ -135,8 +219,9 @@ const loadExpenses = async (event) => {
       .from('gastos')
       .select('*')
       .eq('user_id', user.id)
+      .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .lte('fecha', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString())
       .order('fecha', { ascending: false })
-      .limit(10)
 
     if (error) throw error
 
@@ -191,5 +276,9 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric'
   })
+}
+const editExpense = (expense) => {
+  showModal.value = true
+  editingExpense.value = expense
 }
 </script>

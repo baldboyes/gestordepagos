@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen md:bg-gray-100 md:p-4 pb-20 transition duration-300">
-    <div class="max-w-md mx-auto bg-white rounded-lg md:shadow-lg p-6">
+    <div class="max-w-xl mx-auto bg-white rounded-2xl md:shadow-lg p-6">
       <h1 class="text-2xl font-bold mb-4">Resumen por meses</h1>
       
       <div v-for="month in monthlyExpenses" :key="month.monthKey" class="mb-8">
