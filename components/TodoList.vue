@@ -4,14 +4,14 @@
       <form @submit.prevent="addTodo">
         <div class="flex gap-2">
             <input 
-            v-model="newTodo" 
-            type="text" 
-            placeholder="Añadir nueva tarea"
-            class="flex-1 w-full rounded-md border-2 border-gray-400 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                v-model="newTodo" 
+                type="text" 
+                placeholder="Añadir nueva tarea"
+                class="flex-1 w-full rounded-md border-2 border-gray-10 hover:border-gray-400 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
             <button 
-            type="submit"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+                type="submit"
+                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
             >
             Añadir
             </button>
@@ -19,7 +19,7 @@
         </form>
       <div v-for="(todo, index) in todos" :key="index" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <div class="flex items-center gap-3">
-          <input type="checkbox" v-model="todo.completed" class="rounded border-2 border-gray-400 text-blue-500 focus:ring-blue-500">
+          <input type="checkbox" v-model="todo.completed" class="appearance-none rounded border-2 border-gray-400 checked:bg-gray-300 checked:border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-4 w-4 cursor-pointer">
           <span :class="{ 'line-through text-gray-400': todo.completed }">{{ todo.text }}</span>
         </div>
         <button @click="removeTodo(index)" class="text-red-500 hover:text-red-600 text-xl">
