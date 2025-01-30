@@ -119,6 +119,7 @@ const handleImageCaptured = (imageData) => {
 }
 
 const categories = ref([])
+const categoriesMap = ref(new Map())
 const fixedExpenseTemplates = ref([])
 const supabase = useSupabase()
 
@@ -149,6 +150,8 @@ const loadCategories = async () => {
 
     if (error) throw error
     categories.value = data.map(category => category.nombre)
+    // Create a map of category names to their IDs
+    categoriesMap.value = new Map(data.map(category => [category.nombre, category.id]))
   } catch (error) {
     console.error('Error loading categories:', error)
     categories.value = []
@@ -180,6 +183,7 @@ const getCurrentDate = () => {
 
 const newExpense = ref({
   category: '',
+  category_id: null,
   amount: '',
   note: '',
   date: getCurrentDate()
@@ -189,6 +193,7 @@ watch(() => props.editingExpense, (expense) => {
   if (expense) {
     newExpense.value = {
       category: expense.category,
+      category_id: expense.category_id,
       amount: expense.amount,
       note: expense.note || '',
       date: expense.date
@@ -200,6 +205,7 @@ const applyTemplate = (template) => {
   newExpense.value = {
     ...newExpense.value,
     category: template.categoria,
+    category_id: categoriesMap.value.get(template.categoria),
     amount: template.precio,
     note: template.nota
   }
@@ -216,6 +222,7 @@ const addExpense = async () => {
     const expense = {
       user_id: user.id,
       categoria: newExpense.value.category,
+      categoria_id: categoriesMap.value.get(newExpense.value.category),
       precio: parseFloat(newExpense.value.amount),
       nota: newExpense.value.note,
       fecha: newExpense.value.date
@@ -245,6 +252,7 @@ const addExpense = async () => {
     // Reset form
     newExpense.value = {
       category: '',
+      category_id: null,
       amount: '',
       note: '',
       date: getCurrentDate()
@@ -266,6 +274,7 @@ const updateExpense = async () => {
 
     const expense = {
       categoria: newExpense.value.category,
+      categoria_id: categoriesMap.value.get(newExpense.value.category),
       precio: parseFloat(newExpense.value.amount),
       nota: newExpense.value.note,
       fecha: newExpense.value.date
@@ -282,6 +291,7 @@ const updateExpense = async () => {
     // Reset form
     newExpense.value = {
       category: '',
+      category_id: null,
       amount: '',
       note: '',
       date: getCurrentDate()

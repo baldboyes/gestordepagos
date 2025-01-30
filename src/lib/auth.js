@@ -1,4 +1,11 @@
 import { useSupabase } from './supabase'
+import { ref } from 'vue'
+
+const user = ref(null)
+
+export function useUser() {
+  return { user }
+}
 
 export async function signUp(email, password) {
   try {
@@ -32,6 +39,7 @@ export async function signIn(email, password) {
     if (error) throw error
     if (!data?.user) throw new Error('No se pudo obtener la información del usuario')
     
+    user.value = data.user
     return { data, error: null }
   } catch (error) {
     console.error('Error al iniciar sesión:', error.message)
