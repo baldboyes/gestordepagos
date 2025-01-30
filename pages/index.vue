@@ -147,7 +147,11 @@
 
     </div>
 
-    <van-popup v-model:show="show" closeable position="bottom" :style="{ height: '100%' }"><TodoList /></van-popup>
+    <van-popup v-model:show="show" closeable position="bottom" :style="{ height: '100%' }">
+      <div class="pt-16 px-4 pb-4">
+        <TodoList />
+      </div>
+    </van-popup>
     <BottomNavigation @showModal="showModal = true" />
     <AddExpenseModal 
     :show-modal="showModal" 
