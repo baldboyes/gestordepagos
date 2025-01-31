@@ -12,7 +12,12 @@
         <div class="flex items-start justify-between gap-8">
           <div class="w-full bg-white rounded-2xl md:shadow-lg p-6 relative">
             <div class="absolute lg:hidden top-6 right-6 cursor-pointer" @click="showPopup">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <van-badge dot v-if="totalPendingTasks > 0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </van-badge>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             </div> 
@@ -168,23 +173,26 @@ import { ref, computed, onMounted, inject } from 'vue'
 import BottomNavigation from '../components/BottomNavigation.vue'
 import AddExpenseModal from '../components/AddExpenseModal.vue'
 import { useSupabase } from '../src/lib/supabase'
-const supabase = useSupabase()
+import { useTodoList } from '../composables/useTodoList'
 
-const show = ref(false);
-    const showPopup = () => {
-      show.value = true;
-    };
+const supabase = useSupabase()
+const { totalPendingTasks, fetchLists, fetchTodos, lists } = useTodoList()
 
 const expenses = ref([])
 const isLoading = ref(true)
 const showModal = ref(false)
 const editingExpense = ref(null)
 const hasCategories = ref(false)
+const show = ref(false)
 
 onMounted(async () => {
   try {
     await loadExpenses()
     await checkCategories()
+    await fetchLists()
+    for (const list of lists.value) {
+      await fetchTodos(list.id)
+    }
     // Listen for updates from the modal
     window.addEventListener('expenses-updated', loadExpenses)
   } catch (error) {
@@ -225,7 +233,7 @@ const loadExpenses = async (event) => {
       .select('*')
       .eq('user_id', user.id)
       .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
-      .lte('fecha', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString())
+      .lte('fecha', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString())
       .order('fecha', { ascending: false })
 
     if (error) throw error
@@ -281,6 +289,9 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric'
   })
+}
+const showPopup = () => {
+  show.value = true
 }
 const editExpense = (expense) => {
   showModal.value = true

@@ -1,42 +1,48 @@
 <template>
   <div class="todo-list w-full space-y-6">
-    <!-- Lista de tareas selector/creador -->
-    <div class="space-y-4">
-      <div class="flex gap-2 items-center justify-between">
-          <h2>Listas</h2>
-          <button 
-            @click="showAddModal = true"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
-            title="Añadir lista"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </button>
-        </div>
+    <!-- Header with add list button -->
+    <div class="flex gap-2 items-center justify-between">
+      <h2 class="text-xl font-semibold">Listas</h2>
+      <button 
+        @click="showAddModal = true"
+        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+        title="Añadir lista"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </button>
     </div>
 
+    <!-- Error message -->
+    <div v-if="error" class="p-4 bg-red-100 text-red-700 rounded-lg">
+      {{ error }}
+    </div>
+
+    <!-- Lists -->
     <van-collapse v-model="activeNames" @change="handleCollapseChange" class="space-y-2">
       <van-collapse-item v-for="list in lists" :key="list.id" :name="list.id">
         <template #title>
-          <div class="flex justify-between items-center mr-2">
-            <van-badge class="my-2" position="top-right" v-if="todosByList[list.id]?.filter(todo => !todo.completado).length > 0" :content="todosByList[list.id]?.filter(todo => !todo.completado).length">
-              <h2 class="text-xl font-semibold mr-2">{{ list.nombre }}</h2>
-            </van-badge>
-            <h2 v-else class="text-xl font-semibold">{{ list.nombre }}</h2>
+          <div class="flex justify-between items-center w-full pr-4">
+            <div class="flex items-center gap-2">
+              <van-badge v-if="pendingTodosCount(list.id) > 0" :content="pendingTodosCount(list.id)">
+                <h2 class="text-xl font-semibold mr-2">{{ list.nombre }}</h2>
+              </van-badge>
+              <h2 v-else class="text-xl font-semibold">{{ list.nombre }}</h2>
+            </div>
             <button 
-              @click="confirmDeleteList(list.id)" 
+              @click.stop="confirmDeleteList(list.id)" 
               class="text-red-500 hover:text-red-600 focus:outline-none"
               title="Eliminar lista"
             >
@@ -57,8 +63,10 @@
             </button>
           </div>
         </template>
-        <div class="space-y-4">
-          <form @submit.prevent="addTodoToList(list.id)" class="flex gap-2">
+
+        <!-- Todo items -->
+        <div class="space-y-4 pt-4">
+          <form @submit.prevent="handleAddTodo(list.id)" class="flex gap-2">
             <input 
               v-model="newTodoText[list.id]" 
               type="text" 
@@ -72,36 +80,49 @@
               Añadir
             </button>
           </form>
-          <div v-for="todo in todosByList[list.id]" :key="todo.id" class="flex items-center justify-between px-2 bg-gray-50 rounded-lg">
-            <div class="flex items-center gap-3 text-gray-600">
-              <input 
-                type="checkbox" 
-                :checked="todo.completado"
-                @change="toggleTodo(todo)"
-                class="appearance-none rounded border-2 border-gray-400 checked:bg-gray-300 checked:border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+
+          <TransitionGroup 
+            name="list" 
+            tag="div" 
+            class="space-y-2"
+          >
+            <div 
+              v-for="todo in todosByList[list.id]" 
+              :key="todo.id" 
+              class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg transition-all duration-200 ease-in-out"
+            >
+              <div class="flex items-center gap-3 text-gray-600">
+                <input 
+                  type="checkbox" 
+                  :checked="todo.completado"
+                  @change="toggleTodo(todo)"
+                  class="appearance-none rounded border-2 border-gray-400 checked:bg-gray-300 checked:border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+                >
+                <span :class="{ 'line-through text-gray-400': todo.completado }">
+                  {{ todo.descripcion }}
+                </span>
+              </div>
+              <button 
+                @click="confirmDeleteTodo(todo)" 
+                class="text-red-500 hover:text-red-600 focus:outline-none"
               >
-              <span :class="{ 'line-through text-gray-400': todo.completado }">
-                {{ todo.descripcion }}
-              </span>
+                <span class="sr-only">Eliminar tarea</span>
+                ×
+              </button>
             </div>
-            <button @click="confirmRemoveTodo(todo)" class="text-red-500 hover:text-red-600 text-xl">
-              <span class="sr-only">Eliminar tarea</span>
-              ×
-            </button>
-          </div>
+          </TransitionGroup>
         </div>
       </van-collapse-item>
     </van-collapse>
 
-
-    <!-- Modal para añadir lista -->
+    <!-- Add list modal -->
     <div
       v-if="showAddModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
     >
       <div class="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">Añadir Lista</h2>
-        <form @submit.prevent="addList" class="space-y-4">
+        <form @submit.prevent="handleAddList" class="space-y-4">
           <input
             v-model="newList"
             type="text"
@@ -130,251 +151,114 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useSupabase } from '../src/lib/supabase'
+import { ref, watch } from 'vue'
+import { useTodoList } from '../composables/useTodoList'
 import { useUser } from '../src/lib/auth'
 
-const activeNames = ref([]);
+const {
+  lists,
+  todosByList,
+  activeNames,
+  error,
+  pendingTodosCount,
+  fetchLists,
+  fetchTodos,
+  addList,
+  deleteList,
+  addTodo,
+  toggleTodo,
+  deleteTodo
+} = useTodoList()
 
-const supabase = useSupabase()
-const { user } = useUser()
-const lists = ref([])
-const todos = ref([])
-const newTodo = ref('')
-const newList = ref('')
-const selectedList = ref('')
 const showAddModal = ref(false)
-const todosByList = ref({})
+const newList = ref('')
 const newTodoText = ref({})
 
-// Cargar listas
-const fetchLists = async () => {
-  const { data, error } = await supabase
-    .from('listados')
-    .select('*')
-    .eq('user_id', user.value.id)
-    .order('creado_en')
-  
-  if (error) console.error('Error:', error)
-  else lists.value = data || []
-}
-
-// Cargar tareas de una lista
-const fetchTodos = async (listId) => {
-  if (!listId) return;
-  
-  const { data, error } = await supabase
-    .from('tareas')
-    .select('*')
-    .eq('listado_id', listId)
-    .eq('user_id', user.value.id)
-    .order('creado_en')
-  
-  if (error) {
-    console.error('Error:', error)
-    return
+// Watch for user authentication
+const { user } = useUser()
+watch(user, (newUser) => {
+  if (newUser) {
+    fetchLists()
+  } else {
+    lists.value = []
+    todosByList.value = {}
+    activeNames.value = []
   }
+}, { immediate: true })
+
+// Handle list operations
+const handleAddList = async () => {
+  if (!newList.value.trim()) return
   
-  // Update both the todos array and the todosByList object
-  todos.value = data || []
-  
-  // Initialize the object if it doesn't exist
-  if (!todosByList.value[listId]) {
-    todosByList.value[listId] = []
-  }
-  
-  // Update the tasks for this specific list
-  todosByList.value[listId] = data || []
-}
-
-// Crear nueva lista
-const addList = async () => {
-  showAddModal.value = false // Close modal after successful creation
-  if (!newList.value.trim()) {
-    alert('Por favor, ingresa un nombre para la lista')
-    return
-  }
-
-  try {
-    const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
-    if (userError) throw userError
-
-    const { data, error } = await supabase
-      .from('listados')
-      .insert([{
-        nombre: newList.value.trim(),
-        user_id: currentUser.id,
-        creado_en: new Date().toISOString()
-      }])
-      .select()
-
-    if (error) throw error
-    if (!data || data.length === 0) throw new Error('No se pudo crear la lista')
-
-    // Update the lists array directly with the new list
-    lists.value = [...lists.value, data[0]]
+  const list = await addList(newList.value)
+  if (list) {
+    showAddModal.value = false
     newList.value = ''
-    selectedList.value = data[0].id // Auto-select the newly created list
-    await fetchTodos() // Fetch todos for the newly selected list
-  } catch (error) {
-    console.error('Error al crear la lista:', error)
-    alert('Error al crear la lista. Por favor, inténtalo de nuevo.')
   }
 }
 
-// Eliminar lista
 const confirmDeleteList = (listId) => {
   if (confirm('¿Estás seguro de que deseas eliminar esta lista?')) {
     deleteList(listId)
   }
 }
 
-const deleteList = async (listId) => {
-  if (!listId) return
-  
-  const { error } = await supabase
-    .from('listados')
-    .delete()
-    .eq('id', listId)
-  
-  if (error) {
-    console.error('Error:', error)
-    alert('Error al eliminar la lista. Por favor, inténtalo de nuevo.')
-  } else {
-    // Update local state
-    lists.value = lists.value.filter(list => list.id !== listId)
-    delete todosByList.value[listId]
-    selectedList.value = ''
-    activeNames.value = activeNames.value.filter(name => name !== listId)
-  }
-}
-
-// Añadir tarea a una lista específica
-const addTodoToList = async (listId) => {
+// Handle todo operations
+const handleAddTodo = async (listId) => {
   if (!newTodoText.value[listId]?.trim()) return
   
-  const { error } = await supabase
-    .from('tareas')
-    .insert([{
-      listado_id: listId,
-      descripcion: newTodoText.value[listId].trim(),
-      completado: false,
-      user_id: user.value.id
-    }])
-  
-  if (error) console.error('Error:', error)
-  else {
-    await fetchTodos(listId)
-    newTodoText.value[listId] = ''
-  }
+  await addTodo(listId, newTodoText.value[listId])
+  newTodoText.value[listId] = ''
 }
 
-// Manejar cambios en el collapse
-const handleCollapseChange = async (activeNames) => {
-  // Convert to array if it's not already
-  const namesArray = Array.isArray(activeNames) ? activeNames : [activeNames];
-  
-  for (const listId of namesArray) {
-    if (listId) {
-      await fetchTodos(listId)
-    }
-  }
-}
-
-// Confirmar eliminación de tarea
-const confirmRemoveTodo = (todo) => {
+const confirmDeleteTodo = (todo) => {
   if (confirm(`¿Estás seguro de que deseas eliminar la tarea "${todo.descripcion}"?`)) {
-    removeTodo(todo.id)
+    deleteTodo(todo)
   }
 }
 
-// Eliminar tarea
-const removeTodo = async (todoId) => {
-  const { error } = await supabase
-    .from('tareas')
-    .delete()
-    .eq('id', todoId)
-  
-  if (error) {
-    console.error('Error:', error)
-    alert('Error al eliminar la tarea. Por favor, inténtalo de nuevo.')
-  } else {
-    // Get the list ID from the active names array
-    for (const listId of activeNames.value) {
-      await fetchTodos(listId)
-    }
+// Handle collapse changes
+const handleCollapseChange = async (names) => {
+  const namesArray = Array.isArray(names) ? names : [names]
+  for (const listId of namesArray) {
+    if (listId) await fetchTodos(listId)
   }
 }
 
-// Toggle completado
-const toggleTodo = async (todo) => {
-  const { error } = await supabase
-    .from('tareas')
-    .update({ 
-      completado: !todo.completado,
-      user_id: user.value.id 
-    })
-    .eq('id', todo.id)
-  
-  if (error) {
-    console.error('Error:', error)
-  } else {
-    // Update the todo in the local state immediately
-    if (todosByList.value[todo.listado_id]) {
-      const todoIndex = todosByList.value[todo.listado_id].findIndex(t => t.id === todo.id)
-      if (todoIndex !== -1) {
-        todosByList.value[todo.listado_id][todoIndex].completado = !todo.completado
-      }
-    }
+// Initial data fetch
+const initializeData = async () => {
+  await fetchLists()
+  if (lists.value && lists.value.length > 0) {
+    await Promise.all(lists.value.map(list => fetchTodos(list.id)))
   }
 }
 
-// Watch para cambios en la lista seleccionada
-watch(selectedList, () => {
-  todos.value = []
-  if (selectedList.value) fetchTodos()
-})
-
-// Cargar datos iniciales
-onMounted(async () => {
-  // Initialize user state
-  const { data: { user: initialUser } } = await supabase.auth.getUser()
-  if (initialUser) {
-    user.value = initialUser
-    await fetchLists()
-    // Auto-select the only list if there's just one
-    if (lists.value.length === 1) {
-      selectedList.value = lists.value[0].id
-      await fetchTodos(lists.value[0].id)
-    }
-    // Load todos for all lists
-    for (const list of lists.value) {
-      await fetchTodos(list.id)
-    }
+// Watch for changes in lists to fetch todos when new lists are added
+watch(() => lists.value, async (newLists) => {
+  if (newLists && newLists.length > 0) {
+    await Promise.all(newLists.map(list => fetchTodos(list.id)))
   }
+}, { deep: true })
 
-  // Listen for auth state changes
-  supabase.auth.onAuthStateChange((event, session) => {
-    user.value = session?.user || null
-    if (session?.user) {
-      fetchLists().then(async () => {
-        // Auto-select the only list if there's just one
-        if (lists.value.length === 1) {
-          selectedList.value = lists.value[0].id
-          await fetchTodos(lists.value[0].id)
-        }
-        // Load todos for all lists
-        for (const list of lists.value) {
-          await fetchTodos(list.id)
-        }
-      })
-    } else {
-      lists.value = []
-      todos.value = []
-      selectedList.value = ''
-      activeNames.value = []
-      todosByList.value = {}
-    }
-  })
-})
+initializeData()
 </script>
+
+<style scoped>
+.list-move, /* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+  position: absolute;
+}
+</style>

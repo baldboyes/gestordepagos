@@ -4,6 +4,22 @@ import { ref } from 'vue'
 const user = ref(null)
 
 export function useUser() {
+  const supabase = useSupabase()
+
+  // Initialize user state
+  const initUser = async () => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    user.value = currentUser
+  }
+
+  // Set up auth state change listener
+  supabase.auth.onAuthStateChange((event, session) => {
+    user.value = session?.user || null
+  })
+
+  // Initialize on first use
+  initUser()
+
   return { user }
 }
 
@@ -27,7 +43,6 @@ export async function signUp(email, password) {
   }
 }
 
-// También puedes añadir una función para iniciar sesión
 export async function signIn(email, password) {
   try {
     const supabase = useSupabase()
