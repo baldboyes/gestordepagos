@@ -2,8 +2,6 @@
   <div class="todo-list w-full space-y-6">
     <!-- Lista de tareas selector/creador -->
     <div class="space-y-4">
-
-
       <div class="flex gap-2 items-center justify-between">
           <h2>Listas</h2>
           <button 
@@ -28,7 +26,6 @@
           </button>
         </div>
     </div>
-
 
     <van-collapse v-model="activeNames" @change="handleCollapseChange" class="space-y-2">
       <van-collapse-item v-for="list in lists" :key="list.id" :name="list.id">
