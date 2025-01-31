@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen md:bg-gray-100 md:p-4 pb-20 transition duration-300">
     <div class="max-w-xl mx-auto bg-white rounded-2xl md:shadow-lg p-6">
-      <h2 class="text-2xl font-bold mb-6 text-center">Análisis de Gastos</h2>
+      <h1 class="text-2xl font-bold mb-4">Análisis de Gastos</h1>
       <template v-if="selectedAIProvider === 'ollama'">
         <Ollama 
           :expenses="expenses" 

@@ -1,9 +1,15 @@
 <template>
   <div class="min-h-screen md:bg-gray-100 md:p-4 pb-20 transition duration-300">
     <div class="max-w-xl mx-auto bg-white rounded-2xl md:shadow-lg p-6">
+      <h1 class="text-2xl font-bold mb-4">Usuario</h1>
       <template v-if="currentUser">
         <div class="text-center">
-          <h1 class="text-2xl font-bold mb-4">Perfil de Usuario</h1>
+          <img
+            :src="currentUser.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'"
+            alt="Avatar"
+            class="w-20 h-20 rounded-full mb-2 mx-auto"
+            @error="$event.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'"
+          />
           <p class="text-gray-600 mb-6">{{ currentUser.email }}</p>
           <button
             @click="handleLogout"

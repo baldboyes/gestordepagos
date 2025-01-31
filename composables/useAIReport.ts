@@ -2,6 +2,8 @@ import { ref } from 'vue';
 import { marked } from 'marked';
 import { useExpenseAnalysis } from './useExpenseAnalysis';
 
+const ERROR_MESSAGE = 'Lo siento, no se pudo generar el análisis de gastos. Por favor, <a href="/settings" class="text-blue-600 hover:text-blue-800 underline">verifica la configuración del servicio de IA</a> y asegúrate de que esté disponible y accesible.';
+
 export function useAIReport() {
   const report = ref('');
   const formattedReport = ref('');
@@ -43,10 +45,10 @@ export function useAIReport() {
 
       const data = await response.json();
       report.value = data.choices[0].message.content;
-      formattedReport.value = marked(report.value);
+      formattedReport.value = marked(report.value) as string;;
     } catch (err) {
       console.error('Error generating report:', err);
-      error.value = 'Lo siento, no se pudo generar el análisis de gastos. Por favor, verifica que el servicio de IA esté disponible y accesible.';
+      error.value = ERROR_MESSAGE;
       report.value = error.value;
       formattedReport.value = error.value;
     } finally {
@@ -86,10 +88,10 @@ export function useAIReport() {
 
       const data = await response.json();
       report.value = data.response;
-      formattedReport.value = marked(data.response);
+      formattedReport.value = marked(data.response) as string;
     } catch (err) {
       console.error('Error generating report:', err);
-      error.value = 'Lo siento, no se pudo generar el análisis de gastos. Por favor, verifica que el servicio de IA esté disponible y accesible.';
+      error.value = ERROR_MESSAGE;
       report.value = error.value;
       formattedReport.value = error.value;
     } finally {
