@@ -5,9 +5,7 @@
 
 
       <div class="flex gap-2 items-center justify-between">
-
           <h2>Listas</h2>
-          
           <button 
             @click="showAddModal = true"
             class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
@@ -32,13 +30,14 @@
     </div>
 
 
-    <van-collapse v-model="activeNames" @change="handleCollapseChange">
+    <van-collapse v-model="activeNames" @change="handleCollapseChange" class="space-y-2">
       <van-collapse-item v-for="list in lists" :key="list.id" :name="list.id">
         <template #title>
-          <div class="flex justify-between items-center">
-            <van-badge position="top-right" v-if="todosByList[list.id]?.filter(todo => !todo.completado).length > 0" :content="todosByList[list.id]?.filter(todo => !todo.completado).length">
-              <h2 class="text-xl font-semibold">{{ list.nombre }}</h2>
+          <div class="flex justify-between items-center mr-2">
+            <van-badge class="my-2" position="top-right" v-if="todosByList[list.id]?.filter(todo => !todo.completado).length > 0" :content="todosByList[list.id]?.filter(todo => !todo.completado).length">
+              <h2 class="text-xl font-semibold mr-2">{{ list.nombre }}</h2>
             </van-badge>
+            <h2 v-else class="text-xl font-semibold">{{ list.nombre }}</h2>
             <button 
               @click="confirmDeleteList(list.id)" 
               class="text-red-500 hover:text-red-600 focus:outline-none"
@@ -76,8 +75,8 @@
               Añadir
             </button>
           </form>
-          <div v-for="todo in todosByList[list.id]" :key="todo.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div class="flex items-center gap-3">
+          <div v-for="todo in todosByList[list.id]" :key="todo.id" class="flex items-center justify-between px-2 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-3 text-gray-600">
               <input 
                 type="checkbox" 
                 :checked="todo.completado"
